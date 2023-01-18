@@ -39,44 +39,42 @@
       const speakButton = document.querySelector("#speak");
       const stopButton = document.querySelector("#stop");
 
-      //Your code goes here
+      msg.text = document.querySelector('[name="text"]').value;
 
-      msg.lang = "en";
-      speakButton.addEventListener("click", () => {
-        msg.text = document.querySelector("textarea").value;
-      });
+      function populateVoices() {
+        voices = this.getVoices();
+        voicesDropdown.innerHTML = voices
+          .filter((voice) => voice.lang.includes("en"))
+          .map(
+            (voice) =>
+              `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`
+          )
+          .join("");
+      }
 
-      document.querySelector("#rate").addEventListener("input", () => {
-        const rate = document.querySelector("#rate").value;
-        msg.rate = rate;
-      });
+      function setVoice() {
+        msg.voice = voices.find((voice) => voice.name === this.value);
+        toggle();
+      }
 
-      document.querySelector("#pitch").addEventListener("input", () => {
-        const pitch = document.querySelector("#pitch").value;
-        msg.pitch = pitch;
-      });
+      function toggle(startOver = true) {
+        speechSynthesis.cancel();
+        if (startOver) {
+          speechSynthesis.speak(msg);
+        }
+      }
 
-      window.speechSynthesis.onvoiceschanged = () => {
-        voices = window.speechSynthesis.getVoices();
-        msg.voice = voices[0];
-        let voiceSelect = document.querySelector("#voices");
-        voices.forEach(
-          (voice, i) => (voiceSelect.options[i] = new Option(voice.name, i))
-        );
-      };
+      function setOption() {
+        console.log(this.name, this.value);
+        msg[this.name] = this.value;
+        toggle();
+      }
 
-      document.querySelector("#voices").addEventListener("change", () => {
-        msg.voice = voices[document.querySelector("#voices").value];
-      });
-
-      speakButton.addEventListener("click", () => {
-        msg.text = document.querySelector("textarea").value;
-        window.speechSynthesis.speak(msg);
-      });
-
-      stopButton.addEventListener("click", () => {
-        window.speechSynthesis.cancel();
-      });
+      speechSynthesis.addEventListener("voiceschanged", populateVoices);
+      voicesDropdown.addEventListener("change", setVoice);
+      options.forEach((option) => option.addEventListener("change", setOption));
+      speakButton.addEventListener("click", toggle);
+      stopButton.addEventListener("click", () => toggle(false));
     </script>
   </body>
 </html>
